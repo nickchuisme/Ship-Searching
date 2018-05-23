@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 import osr, csv, os
 import fiona
 import datetime, time
@@ -14,17 +15,17 @@ class tree():
 		self.SelectedList = []
 		self.End_timeList=[]
 		self.Start_timeList=[]
-		self.date_format = 2
+		self.date_format = 1
 		self.shapes = {}
 		self.properties = {}
 		
 	def createindex(self):
 		#import data
-		collection = fiona.open('C:/Users/USER/Desktop/ShipSearchingmaster/taichung_fix.shp')
+		collection = fiona.open('C:/Users/USER/Desktop/rtree/taichung_fix.shp')
 		for num,f in enumerate(collection):
 			mmsi  = int(f['properties']['MMSI'])
 			self.MMSI.append(mmsi)
-			self.shapes[num] = shape(f['geometry'])
+			self.shapes[num] = shape(f['geometry']) 
 			self.properties[num] = f['properties']
 			#print(num,properties[num]['End_time'])
 			self.End_timeList.append(self.properties[num]['End_time'])
@@ -51,7 +52,7 @@ class tree():
 		spatialref.SetWellKnownGeogCS('WGS84')  # WGS84 aka ESPG:4326
 		#create output Layer
 		driver = ogr.GetDriverByName("ESRI Shapefile")
-		outShapefile = 'C:/Users/USER/Desktop/atreeshp.shp'
+		outShapefile = 'C:/Users/USER/Desktop/rtree/rtreeshp.shp'
 		# Remove output shapefile if it already exists
 		if os.path.exists(outShapefile):
 			driver.DeleteDataSource(outShapefile)
@@ -76,7 +77,7 @@ class tree():
 		for x,linestring in zip(sorted(list(self.idx.intersection(input_boundingBox))),self.shapes.items()):
 			#time.sleep(0.01)
 			
-			if (poly.intersects(linestring[1]) == True and tree.checktime(self.Start_timeList[x],self.End_timeList[x],self.date_format,x) == True):
+			if (poly.intersects(linestring[1]) == True and tree.checktime(self.Start_timeList[x],self.End_timeList[x],date_format,x) == True):
 				print('%s (%s) is selected...'%(x,self.MMSI[x]))
 				self.SelectedList.append(int(x))
 				#print (x)
@@ -108,23 +109,22 @@ class tree():
 		#feature.SetStyleString("PEN(c:FF0000FF)")
 		dstlayer.CreateFeature(feature)
 
-# 檢查時間
+	# 檢查時間
 	def checktime(self,From_time,To_time,date_format,id):
-		if(self.date_format == 1):
-			self.date_format = '%Y-%m-%d %H:%M:%S'
-		elif(self.date_format == 2):
-			self.date_format = '%Y/%m/%d %H:%M:%S'
 		global LeftTimeBounding, RightTimeBounding
 		#print('LeftTimeBounding = %s')%(LeftTimeBounding)
 		#print('RightTimeBounding = %s')%(RightTimeBounding)
 		#print('From_time = %s')%(From_time)
 		#print('To_time = %s')%(To_time)
-		
+		if(date_format == 1):
+			date_format = '%Y-%m-%d %H:%M:%S'
+		elif(date_format == 2):
+			date_format = '%Y/%m/%d %H:%M:%S'
 		if((type(LeftTimeBounding) == float) is False):
-			LeftTimeBounding = time.mktime(time.strptime(str(LeftTimeBounding),self.date_format))
-			RightTimeBounding = time.mktime(time.strptime(str(RightTimeBounding),self.date_format))
-		From_time = time.mktime(time.strptime(From_time,self.date_format))
-		To_time = time.mktime(time.strptime(To_time,self.date_format))
+			LeftTimeBounding = time.mktime(time.strptime(str(LeftTimeBounding),date_format))
+			RightTimeBounding = time.mktime(time.strptime(str(RightTimeBounding),date_format))
+		From_time = time.mktime(time.strptime(From_time,date_format))
+		To_time = time.mktime(time.strptime(To_time,date_format))
 		
 		#select time overlap
 		if((From_time>RightTimeBounding) is False or (To_time<LeftTimeBounding) is False):
@@ -134,10 +134,11 @@ class tree():
 
 if __name__ == "__main__":
 	tree = tree()
-	#LeftTimeBounding = raw_input()
-	#RightTimeBounding = raw_input()
-	#format = int(input())
-	LeftTimeBounding = '2000/01/01 00:00:00'
-	RightTimeBounding = '2020/01/01 00:00:00'
-	minX,minY,maxX,maxY = input("input minX,minY,maxX,maxY and divide with Space: ").split(" ")
+	#LeftTimeBounding = '2000/01/01 00:00:00'
+	#RightTimeBounding = '2020/01/01 00:00:00'
+	LeftTimeBounding = raw_input("StartingTime: ")
+	RightTimeBounding = raw_input("EndTime: ")
+	date_format = int(raw_input("Timeformat[input 1.-, 2./]: "))
+
+	minX,minY,maxX,maxY = raw_input("input minX,minY,maxX,maxY and divide with Space: ").split(' ')
 	tree.FindOverlap(float(minX),float(minY),float(maxX),float(maxY))
