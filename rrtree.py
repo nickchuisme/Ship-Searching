@@ -114,7 +114,7 @@ class tree():
 		To_time = time.mktime(time.strptime(To_time,date_format))
 		
 		#select time overlap
-		if((From_time>RightTimeBounding) is False or (To_time<LeftTimeBounding) is False):
+		if((From_time>LeftTimeBounding) and (To_time<RightTimeBounding)):
 			return True
 
 
