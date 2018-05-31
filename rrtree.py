@@ -91,14 +91,6 @@ class tree():
 		
 		print('SelectedList: %s'%(self.SelectedList))
 		print('Length of SelectedList: %s'%(len(self.SelectedList)))
-		
-		polygon = ogr.CreateGeometryFromWkt(str(poly))
-		feature.SetGeometry(polygon)
-		feature.SetField("MMSI", 'boundingbox')
-		feature.SetField("Start_time", 'None')
-		feature.SetField("End_time", 'None')
-		#feature.SetStyleString("PEN(c:FF0000FF)")
-		dstlayer.CreateFeature(feature)
 
 	# 檢查時間
 	def checktime(self,From_time,To_time,date_format,id):
@@ -114,7 +106,7 @@ class tree():
 		To_time = time.mktime(time.strptime(To_time,date_format))
 		
 		#select time overlap
-		if((From_time>RightTimeBounding) is False or (To_time<LeftTimeBounding) is False):
+		if((From_time<RightTimeBounding)and (To_time>LeftTimeBounding)):
 			return True
 
 
